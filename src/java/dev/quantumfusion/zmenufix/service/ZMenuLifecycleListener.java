@@ -123,6 +123,7 @@ public final class ZMenuLifecycleListener implements Listener {
         String summary = String.format(Locale.US,
                 "Closed %d inventory view(s) after zMenu disable via %s.", closedCount, reason);
         fileLogger.info(summary);
+        fileLogger.logFixEventXml(reason, closedCount, List.copyOf(affectedPlayers));
 
         if (plugin.isDebug() && !affectedPlayers.isEmpty()) {
             fileLogger.debug("Players affected: " + String.join(", ", affectedPlayers));

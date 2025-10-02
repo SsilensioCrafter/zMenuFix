@@ -4,6 +4,8 @@ import dev.quantumfusion.zmenufix.config.ZMenuFixConfiguration;
 import dev.quantumfusion.zmenufix.logging.ZMenuFixFileLogger;
 import dev.quantumfusion.zmenufix.service.ZMenuLifecycleListener;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
@@ -34,7 +36,7 @@ public final class ZMenuFixPlugin extends JavaPlugin {
         }
 
         try {
-            saveDefaultConfig();
+            ensureConfigurationFile(dataFolder);
             reloadConfiguration();
         } catch (Exception exception) {
             getLogger().log(Level.SEVERE, "Failed to load configuration, disabling plugin.", exception);
@@ -78,6 +80,7 @@ public final class ZMenuFixPlugin extends JavaPlugin {
     }
 
     public void reloadConfiguration() {
+        reloadConfig();
         FileConfiguration fileConfiguration = getConfig();
         fileConfiguration.options().copyDefaults(true);
         saveConfig();
@@ -104,6 +107,21 @@ public final class ZMenuFixPlugin extends JavaPlugin {
 
     public boolean isDebug() {
         return configuration != null && configuration.debug();
+    }
+
+    private void ensureConfigurationFile(File dataFolder) throws IOException {
+        try (InputStream ignored = getResource("config.yml")) {
+            if (ignored == null) {
+                throw new IOException("config.yml resource is missing from the plugin jar.");
+            }
+        }
+
+        saveDefaultConfig();
+
+        File configFile = new File(dataFolder, "config.yml");
+        if (!configFile.exists()) {
+            throw new IOException("Unable to create config.yml in the plugin data folder.");
+        }
     }
 
     private void logStartupBanner() {
