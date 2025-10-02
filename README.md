@@ -37,7 +37,7 @@ fix:
 ## Building
 1. Install Java 17 or newer.
 2. Run `mvn clean package`.
-3. Drop the generated `target/zmenufix-1.1.0-SNAPSHOT.jar` into your server's `plugins/` folder.
+3. Drop the generated `target/ZMenuFix.jar` into your server's `plugins/` folder.
 
 ## Support
 Issues and pull requests are welcome.
