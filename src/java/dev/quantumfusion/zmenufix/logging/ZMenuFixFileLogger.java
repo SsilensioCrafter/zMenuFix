@@ -54,23 +54,6 @@ public final class ZMenuFixFileLogger {
         log(Level.INFO, message, null);
     }
 
-    public void persistInfo(String message) {
-        Objects.requireNonNull(message, "message");
-        if (!settings.enabled()) {
-            return;
-        }
-
-        writeLock.lock();
-        try {
-            String xmlEntry = buildLogEntry(Level.INFO, message, null);
-            appendXmlEntry(xmlEntry);
-        } catch (IOException exception) {
-            consoleLogger.log(Level.SEVERE, "Failed to write info entry to handled-errors.xml.", exception);
-        } finally {
-            writeLock.unlock();
-        }
-    }
-
     public void warn(String message) {
         log(Level.WARNING, message, null);
     }
@@ -101,41 +84,6 @@ public final class ZMenuFixFileLogger {
         }
         log(Level.INFO, consoleMessage.toString(), null);
 
-        if (!settings.enabled()) {
-            return;
-        }
-
-        writeLock.lock();
-        try {
-            StringBuilder builder = new StringBuilder();
-            builder.append("<fix-event timestamp=\"")
-                    .append(escapeForXml(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())))
-                    .append("\" reason=\"")
-                    .append(escapeForXml(reason))
-                    .append("\" closed=\"")
-                    .append(closedCount)
-                    .append("\">");
-
-            if (!affectedPlayers.isEmpty()) {
-                builder.append("<players>");
-                for (String player : affectedPlayers) {
-                    if (player == null || player.isBlank()) {
-                        continue;
-                    }
-                    builder.append("<player name=\"")
-                            .append(escapeForXml(player))
-                            .append("\"/>");
-                }
-                builder.append("</players>");
-            }
-
-            builder.append("</fix-event>");
-            appendXmlEntry(builder.toString());
-        } catch (IOException exception) {
-            consoleLogger.log(Level.SEVERE, "Failed to write fix-event entry to handled-errors.xml.", exception);
-        } finally {
-            writeLock.unlock();
-        }
     }
 
     public void shutdown() {
@@ -204,6 +152,10 @@ public final class ZMenuFixFileLogger {
         } finally {
             writeLock.unlock();
         }
+    }
+
+    private boolean shouldPersist(Level level, Throwable throwable) {
+        return settings.enabled() && throwable != null;
     }
 
     private String buildLogEntry(Level level, String message, Throwable throwable) {
