@@ -2,8 +2,7 @@ enabled: true
 debug: false
 log:
   enabled: true
-  folder: logs
-  rotate_daily: true
+  file: handled-errors.xml
   include_stacktraces: false
 fix:
   close_on_zmenu_disable: true
