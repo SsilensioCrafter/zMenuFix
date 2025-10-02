@@ -12,6 +12,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
@@ -60,6 +61,37 @@ public final class ZMenuFixFileLogger {
 
     public void error(String message, Throwable throwable) {
         log(Level.SEVERE, message, throwable);
+    }
+
+    public void logFixEventXml(String reason, int closedCount, List<String> affectedPlayers) {
+        Objects.requireNonNull(reason, "reason");
+        Objects.requireNonNull(affectedPlayers, "affectedPlayers");
+
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        StringBuilder builder = new StringBuilder();
+        builder.append("<fix-event timestamp=\"")
+                .append(escapeForXml(timestamp))
+                .append("\" reason=\"")
+                .append(escapeForXml(reason))
+                .append("\" closed=\"")
+                .append(closedCount)
+                .append("\">");
+
+        if (!affectedPlayers.isEmpty()) {
+            builder.append("<players>");
+            for (String player : affectedPlayers) {
+                if (player == null || player.isBlank()) {
+                    continue;
+                }
+                builder.append("<player name=\"")
+                        .append(escapeForXml(player))
+                        .append("\"/>");
+            }
+            builder.append("</players>");
+        }
+
+        builder.append("</fix-event>");
+        log(Level.INFO, builder.toString(), null);
     }
 
     public void shutdown() {
@@ -141,5 +173,15 @@ public final class ZMenuFixFileLogger {
         } finally {
             writeLock.unlock();
         }
+    }
+
+    private String escapeForXml(String value) {
+        Objects.requireNonNull(value, "value");
+        String escaped = value.replace("&", "&amp;")
+                .replace("\"", "&quot;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("'", "&apos;");
+        return escaped;
     }
 }
