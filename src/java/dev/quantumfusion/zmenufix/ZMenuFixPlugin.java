@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -20,15 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class ZMenuFixPlugin extends JavaPlugin {
 
     private static final Pattern ANSI_PATTERN = Pattern.compile("\\u001B\\[[;\\d]*m");
-    private static final String ANSI_RESET = "\u001B[0m";
-    private static final String ANSI_BOLD_BRIGHT_AQUA = "\u001B[1;96m";
-    private static final String[] BANNER_LINES = {
-        "███████  ███   ███   ████████  ███████  ███   ███",
-        "    ███  ████ ████   ███         ███     ███ ███",
-        "  ███    ███ █ ███   ██████      ███       ███",
-        " ███     ███   ███   ███         ███     ███ ███",
-        "███████  ███   ███   ███       ███████  ███   ███"
-    };
+    private static final String BANNER_TEXT = "ZMFIX";
 
     private final AtomicBoolean zMenuDetected = new AtomicBoolean(false);
 
@@ -135,20 +128,16 @@ public final class ZMenuFixPlugin extends JavaPlugin {
     }
 
     private void logStartupBanner() {
-        for (String line : BANNER_LINES) {
-            String ansiBannerLine = ANSI_BOLD_BRIGHT_AQUA + line + ANSI_RESET;
-            dispatchBannerLine(ansiBannerLine, line);
-        }
+        String styledBanner = ChatColor.AQUA.toString() + ChatColor.BOLD + BANNER_TEXT + ChatColor.RESET;
+        dispatchBannerLine(styledBanner, BANNER_TEXT);
     }
 
-    private void dispatchBannerLine(String consoleLine, String plainLine) {
+    private void dispatchBannerLine(String line, String plainLine) {
         ConsoleCommandSender console = Bukkit.getConsoleSender();
         if (console != null) {
-            console.sendMessage(consoleLine);
-        } else {
-            System.out.println(consoleLine);
+            console.sendMessage(line);
         }
-        String base = (plainLine == null || plainLine.isEmpty()) ? consoleLine : plainLine;
+        String base = (plainLine == null || plainLine.isEmpty()) ? line : plainLine;
         String sanitized = ANSI_PATTERN.matcher(base).replaceAll("");
         if (sanitized == null || sanitized.isBlank()) {
             sanitized = base;
