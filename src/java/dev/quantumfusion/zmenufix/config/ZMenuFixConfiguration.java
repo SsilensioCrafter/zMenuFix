@@ -38,22 +38,19 @@ public final class ZMenuFixConfiguration {
     public static final class LoggingSettings {
 
         private final boolean enabled;
-        private final String folder;
-        private final boolean rotateDaily;
+        private final String file;
         private final boolean includeStacktraces;
 
         public LoggingSettings(ConfigurationSection section) {
             if (section == null) {
                 this.enabled = true;
-                this.folder = "logs";
-                this.rotateDaily = true;
+                this.file = "handled-errors.xml";
                 this.includeStacktraces = false;
                 return;
             }
 
             this.enabled = section.getBoolean("enabled", true);
-            this.folder = section.getString("folder", "logs");
-            this.rotateDaily = section.getBoolean("rotate_daily", true);
+            this.file = section.getString("file", "handled-errors.xml");
             this.includeStacktraces = section.getBoolean("include_stacktraces", false);
         }
 
@@ -61,12 +58,8 @@ public final class ZMenuFixConfiguration {
             return enabled;
         }
 
-        public String folder() {
-            return folder;
-        }
-
-        public boolean rotateDaily() {
-            return rotateDaily;
+        public String file() {
+            return file;
         }
 
         public boolean includeStacktraces() {
