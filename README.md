@@ -28,6 +28,10 @@ fix:
   notify_message: "&eYour menu was closed due to zMenu restart."
 ```
 
+## Project layout
+- `src/java` – Java sources for the plugin.
+- `src/resources` – bundled configuration defaults and metadata.
+
 ## Building
 1. Install Java 17 or newer.
 2. Run `mvn clean package`.
