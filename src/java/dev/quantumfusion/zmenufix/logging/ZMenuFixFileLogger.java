@@ -54,6 +54,23 @@ public final class ZMenuFixFileLogger {
         log(Level.INFO, message, null);
     }
 
+    public void persistInfo(String message) {
+        Objects.requireNonNull(message, "message");
+        if (!settings.enabled()) {
+            return;
+        }
+
+        writeLock.lock();
+        try {
+            String xmlEntry = buildLogEntry(Level.INFO, message, null);
+            appendXmlEntry(xmlEntry);
+        } catch (IOException exception) {
+            consoleLogger.log(Level.SEVERE, "Failed to write info entry to handled-errors.xml.", exception);
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
     public void warn(String message) {
         log(Level.WARNING, message, null);
     }
@@ -174,7 +191,7 @@ public final class ZMenuFixFileLogger {
 
         consoleLogger.log(level, message, throwable);
 
-        if (!settings.enabled()) {
+        if (!shouldPersist(level, throwable)) {
             return;
         }
 
