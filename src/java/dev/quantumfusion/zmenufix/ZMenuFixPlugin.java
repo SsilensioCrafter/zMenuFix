@@ -126,32 +126,23 @@ public final class ZMenuFixPlugin extends JavaPlugin {
 
     private void logStartupBanner() {
         String accent = "\u001B[38;2;0;204;255m";
-        String secondary = "\u001B[38;2;0;153;255m";
+        String bold = "\u001B[1m";
         String reset = "\u001B[0m";
-        String[] banner = {
-                accent + "╔══════════════════════════════════════════════╗" + reset,
-                accent + "║" + secondary + "   ███████╗███╗   ███╗███████╗██╗  ██╗" + accent + "   ║" + reset,
-                accent + "║" + secondary + "   ██╔════╝████╗ ████║██╔════╝██║ ██╔╝" + accent + "   ║" + reset,
-                accent + "║" + secondary + "   █████╗  ██╔████╔██║█████╗  █████╔╝ " + accent + "  ║" + reset,
-                accent + "║" + secondary + "   ██╔══╝  ██║╚██╔╝██║██╔══╝  ██╔═██╗ " + accent + "  ║" + reset,
-                accent + "║" + secondary + "   ███████╗██║ ╚═╝ ██║███████╗██║  ██╗" + accent + "   ║" + reset,
-                accent + "║" + secondary + "   ╚══════╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝" + accent + "   ║" + reset,
-        };
 
-        String footer = accent + "║" + secondary + "                Z M F I X                 " + accent + "║" + reset;
-        String bottom = accent + "╚══════════════════════════════════════════════╝" + reset;
-
-        for (String line : banner) {
-            dispatchBannerLine(line);
-        }
-        dispatchBannerLine(footer);
-        dispatchBannerLine(bottom);
+        String plainBanner = "ZMFIX";
+        String banner = accent + bold + plainBanner + reset;
+        dispatchBannerLine(banner, plainBanner);
     }
 
-    private void dispatchBannerLine(String line) {
+    private void dispatchBannerLine(String line, String plainLine) {
         getLogger().info(line);
         if (fileLogger != null) {
-            fileLogger.info(ANSI_PATTERN.matcher(line).replaceAll(""));
+            String base = (plainLine == null || plainLine.isEmpty()) ? line : plainLine;
+            String sanitized = ANSI_PATTERN.matcher(base).replaceAll("");
+            if (sanitized == null || sanitized.isBlank()) {
+                sanitized = base;
+            }
+            fileLogger.persistInfo(sanitized);
         }
     }
 }
