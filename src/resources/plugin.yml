@@ -1,0 +1,11 @@
+name: ZMenuFix
+main: dev.quantumfusion.zmenufix.ZMenuFixPlugin
+version: 1.1.0
+api-version: '1.20'
+author: QuantumFusion
+website: https://github.com/quantumfusion/zmenufix
+load: POSTWORLD
+depend: []
+softdepend:
+  - zMenu
+description: Safely closes zMenu inventories on plugin disable to prevent IllegalPluginAccessException.
