@@ -202,5 +202,6 @@ public final class ZMenuFixPlugin extends JavaPlugin {
             }
             return String.format("%-" + width + 's', value);
         }
+        getLogger().info(sanitized);
     }
 }
