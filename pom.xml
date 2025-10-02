@@ -32,6 +32,7 @@
     </dependencies>
 
     <build>
+        <finalName>ZMenuFix</finalName>
         <sourceDirectory>src/java</sourceDirectory>
         <resources>
             <resource>
