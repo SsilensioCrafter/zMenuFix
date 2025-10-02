@@ -206,13 +206,6 @@ public final class ZMenuFixFileLogger {
         }
     }
 
-    private boolean shouldPersist(Level level, Throwable throwable) {
-        if (!settings.enabled()) {
-            return false;
-        }
-        return throwable != null || level.intValue() >= Level.SEVERE.intValue();
-    }
-
     private String buildLogEntry(Level level, String message, Throwable throwable) {
         LocalDateTime now = LocalDateTime.now();
         StringBuilder builder = new StringBuilder();
