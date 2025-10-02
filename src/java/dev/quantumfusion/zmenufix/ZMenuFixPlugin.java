@@ -126,22 +126,11 @@ public final class ZMenuFixPlugin extends JavaPlugin {
 
     private void logStartupBanner() {
         String accent = "\u001B[38;2;0;204;255m";
-        String secondary = "\u001B[38;2;0;153;255m";
         String bold = "\u001B[1m";
         String reset = "\u001B[0m";
 
-        String brand = "𝗭𝗠𝗙𝗜𝗫";
-        String framed = accent
-                + "╔═══════════════ "
-                + secondary
-                + bold
-                + brand
-                + reset
-                + accent
-                + " ═══════════════╗"
-                + reset;
-
-        dispatchBannerLine(framed);
+        String banner = accent + bold + "ZMFIX" + reset;
+        dispatchBannerLine(banner);
     }
 
     private void dispatchBannerLine(String line) {
