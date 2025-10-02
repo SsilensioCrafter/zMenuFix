@@ -11,6 +11,12 @@ Production-ready mitigation plugin that ensures zMenu GUI sessions are closed sa
 - Optional player notifications, debug instrumentation, and async guards for thread safety.
 - Structured XML log stream written to `plugins/ZMenuFix/handled-errors.xml` with optional stack traces.
 
+### Startup banner
+
+```
+╔═══════════════ 𝗭𝗠𝗙𝗜𝗫 ═══════════════╗
+```
+
 ## Configuration
 Configuration is stored at `plugins/ZMenuFix/config.yml`:
 

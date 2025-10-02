@@ -130,14 +130,15 @@ public final class ZMenuFixPlugin extends JavaPlugin {
         String bold = "\u001B[1m";
         String reset = "\u001B[0m";
 
+        String brand = "𝗭𝗠𝗙𝗜𝗫";
         String framed = accent
-                + "╔══════════════ "
+                + "╔═══════════════ "
                 + secondary
                 + bold
-                + "ZMFIX"
+                + brand
                 + reset
                 + accent
-                + " ══════════════╗"
+                + " ═══════════════╗"
                 + reset;
 
         dispatchBannerLine(framed);
