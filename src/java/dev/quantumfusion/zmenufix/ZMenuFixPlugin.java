@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -21,7 +20,21 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class ZMenuFixPlugin extends JavaPlugin {
 
     private static final Pattern ANSI_PATTERN = Pattern.compile("\\u001B\\[[;\\d]*m");
-    private static final String BANNER_TEXT = "ZMFIX";
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_BOLD_BRIGHT_AQUA = "\u001B[1;96m";
+    private static final int BANNER_HEIGHT = 5;
+    private static final BannerGlyph[] BANNER_GLYPHS = {
+        new BannerGlyph(7, "███████", "    ███", "  ███", " ███", "███████"),
+        BannerGlyph.space(2),
+        new BannerGlyph(9, "███   ███", "████ ████", "███ █ ███", "███   ███", "███   ███"),
+        BannerGlyph.space(3),
+        new BannerGlyph(7, "███████", "███", "██████", "███", "███"),
+        BannerGlyph.space(2),
+        new BannerGlyph(7, "███████", "   █", "   █", "   █", "███████"),
+        BannerGlyph.space(2),
+        new BannerGlyph(9, "███   ███", " ███ ███ ", "  ████", " ███ ███ ", "███   ███")
+    };
+    private static final String[] BANNER_LINES = composeBanner();
 
     private final AtomicBoolean zMenuDetected = new AtomicBoolean(false);
 
@@ -127,20 +140,78 @@ public final class ZMenuFixPlugin extends JavaPlugin {
         }
     }
 
-    private void logStartupBanner() {
-        String styledBanner = ChatColor.AQUA.toString() + ChatColor.BOLD + BANNER_TEXT + ChatColor.RESET;
-        dispatchBannerLine(styledBanner, BANNER_TEXT);
+    private static String[] composeBanner() {
+        String[] lines = new String[BANNER_HEIGHT];
+        for (int row = 0; row < BANNER_HEIGHT; row++) {
+            StringBuilder builder = new StringBuilder(64);
+            for (BannerGlyph glyph : BANNER_GLYPHS) {
+                builder.append(glyph.line(row));
+            }
+            lines[row] = builder.toString();
+        }
+        return lines;
     }
 
-    private void dispatchBannerLine(String line, String plainLine) {
+    private void logStartupBanner() {
+        for (String line : BANNER_LINES) {
+            dispatchBannerLine(line);
+        }
+    }
+
+    private void dispatchBannerLine(String plainLine) {
+        String ansiLine = ANSI_BOLD_BRIGHT_AQUA + plainLine + ANSI_RESET;
         ConsoleCommandSender console = Bukkit.getConsoleSender();
         if (console != null) {
-            console.sendMessage(line);
+            console.sendMessage(ansiLine);
+            return;
         }
-        String base = (plainLine == null || plainLine.isEmpty()) ? line : plainLine;
-        String sanitized = ANSI_PATTERN.matcher(base).replaceAll("");
-        if (sanitized == null || sanitized.isBlank()) {
-            sanitized = base;
+
+        System.out.println(ansiLine);
+        String sanitized = ANSI_PATTERN.matcher(ansiLine).replaceAll("");
+        if (!sanitized.isBlank()) {
+            getLogger().info(sanitized);
+        }
+    }
+
+    private static final class BannerGlyph {
+
+        private final int width;
+        private final String[] rows;
+
+        private BannerGlyph(int width, String... rows) {
+            if (rows.length != BANNER_HEIGHT) {
+                throw new IllegalArgumentException("Each banner glyph must have exactly " + BANNER_HEIGHT + " rows.");
+            }
+            this.width = width;
+            this.rows = rows;
+        }
+
+        private static BannerGlyph space(int width) {
+            String[] rows = new String[BANNER_HEIGHT];
+            String blankRow = repeat(' ', Math.max(0, width));
+            for (int i = 0; i < BANNER_HEIGHT; i++) {
+                rows[i] = blankRow;
+            }
+            return new BannerGlyph(width, rows);
+        }
+
+        private static String repeat(char character, int count) {
+            if (count <= 0) {
+                return "";
+            }
+            StringBuilder builder = new StringBuilder(count);
+            for (int i = 0; i < count; i++) {
+                builder.append(character);
+            }
+            return builder.toString();
+        }
+
+        private String line(int row) {
+            String value = rows[row];
+            if (value.length() >= width) {
+                return value;
+            }
+            return String.format("%-" + width + "s", value);
         }
         getLogger().info(sanitized);
     }
