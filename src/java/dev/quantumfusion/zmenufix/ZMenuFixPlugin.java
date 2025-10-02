@@ -6,7 +6,6 @@ import dev.quantumfusion.zmenufix.service.ZMenuLifecycleListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
@@ -128,76 +127,20 @@ public final class ZMenuFixPlugin extends JavaPlugin {
     private void logStartupBanner() {
         String accent = "\u001B[38;2;0;204;255m";
         String secondary = "\u001B[38;2;0;153;255m";
+        String bold = "\u001B[1m";
         String reset = "\u001B[0m";
-        String[] z = {
-                "█████████",
-                "      ██ ",
-                "    ██   ",
-                "  ██     ",
-                "██       ",
-                "█████████"
-        };
-        String[] m = {
-                "███   ███",
-                "████ ████",
-                "██ ███ ██",
-                "██  █  ██",
-                "██     ██",
-                "██     ██"
-        };
-        String[] f = {
-                "█████████",
-                "██       ",
-                "███████  ",
-                "██       ",
-                "██       ",
-                "██       "
-        };
-        String[] i = {
-                "█████████",
-                "   ███   ",
-                "   ███   ",
-                "   ███   ",
-                "   ███   ",
-                "█████████"
-        };
-        String[] x = {
-                "███   ███",
-                " ███ ███ ",
-                "  █████  ",
-                "  █████  ",
-                " ███ ███ ",
-                "███   ███"
-        };
 
-        String[][] letters = {z, m, f, i, x};
-        String[] glyph = new String[z.length];
-        for (int row = 0; row < z.length; row++) {
-            StringBuilder rowBuilder = new StringBuilder();
-            for (int column = 0; column < letters.length; column++) {
-                if (column > 0) {
-                    rowBuilder.append("  ");
-                }
-                rowBuilder.append(letters[column][row]);
-            }
-            glyph[row] = rowBuilder.toString();
-        }
+        String framed = accent
+                + "╔══════════════ "
+                + secondary
+                + bold
+                + "ZMFIX"
+                + reset
+                + accent
+                + " ══════════════╗"
+                + reset;
 
-        int width = Arrays.stream(glyph)
-                .mapToInt(String::length)
-                .max()
-                .orElse(0);
-
-        String top = accent + "╔" + "═".repeat(width + 4) + "╗" + reset;
-        String bottom = accent + "╚" + "═".repeat(width + 4) + "╝" + reset;
-
-        dispatchBannerLine(top);
-        for (String line : glyph) {
-            String padded = String.format("%-" + width + "s", line);
-            String framed = accent + "║  " + secondary + padded + accent + "  ║" + reset;
-            dispatchBannerLine(framed);
-        }
-        dispatchBannerLine(bottom);
+        dispatchBannerLine(framed);
     }
 
     private void dispatchBannerLine(String line) {
