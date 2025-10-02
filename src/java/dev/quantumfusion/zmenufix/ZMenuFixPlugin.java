@@ -11,6 +11,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -19,6 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class ZMenuFixPlugin extends JavaPlugin {
 
     private static final Pattern ANSI_PATTERN = Pattern.compile("\\u001B\\[[;\\d]*m");
+    private static final String BANNER_TEXT = "ZMFIX";
 
     private final AtomicBoolean zMenuDetected = new AtomicBoolean(false);
 
@@ -125,24 +128,20 @@ public final class ZMenuFixPlugin extends JavaPlugin {
     }
 
     private void logStartupBanner() {
-        String accent = "\u001B[38;2;0;204;255m";
-        String bold = "\u001B[1m";
-        String reset = "\u001B[0m";
-
-        String plainBanner = "ZMFIX";
-        String banner = accent + bold + plainBanner + reset;
-        dispatchBannerLine(banner, plainBanner);
+        String styledBanner = ChatColor.AQUA.toString() + ChatColor.BOLD + BANNER_TEXT + ChatColor.RESET;
+        dispatchBannerLine(styledBanner, BANNER_TEXT);
     }
 
     private void dispatchBannerLine(String line, String plainLine) {
-        getLogger().info(line);
-        if (fileLogger != null) {
-            String base = (plainLine == null || plainLine.isEmpty()) ? line : plainLine;
-            String sanitized = ANSI_PATTERN.matcher(base).replaceAll("");
-            if (sanitized == null || sanitized.isBlank()) {
-                sanitized = base;
-            }
-            fileLogger.persistInfo(sanitized);
+        ConsoleCommandSender console = Bukkit.getConsoleSender();
+        if (console != null) {
+            console.sendMessage(line);
         }
+        String base = (plainLine == null || plainLine.isEmpty()) ? line : plainLine;
+        String sanitized = ANSI_PATTERN.matcher(base).replaceAll("");
+        if (sanitized == null || sanitized.isBlank()) {
+            sanitized = base;
+        }
+        getLogger().info(sanitized);
     }
 }
