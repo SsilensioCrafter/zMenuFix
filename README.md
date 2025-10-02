@@ -1,5 +1,8 @@
 # ZMenuFix
 
+<img width="1024" height="1024" alt="image" src="https://github.com/user-attachments/assets/4b1449f7-689f-49f6-b7ca-310cffd80a0c" />
+
+
 Production-ready mitigation plugin that ensures zMenu GUI sessions are closed safely when the zMenu plugin reloads or shuts down. Built for Paper/Spigot 1.20.1+ with configuration-driven behaviour and structured file logging.
 
 ## Features
