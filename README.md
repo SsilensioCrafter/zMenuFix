@@ -6,8 +6,10 @@
 Production-ready mitigation plugin that ensures zMenu GUI sessions are closed safely when the zMenu plugin reloads or shuts down. Built for Paper/Spigot 1.20.1+ with configuration-driven behaviour and structured XML logging.
 
 ## Features
-- Gracefully detects zMenu enable/disable lifecycle without a hard dependency.
+- Gracefully detects zMenu enable/disable lifecycle without a hard dependency and now forces
+  load order ahead of zMenu so the scheduler bridge survives zMenu shutdown.
 - Closes lingering inventory views on zMenu disable to prevent `IllegalPluginAccessException`.
+- Bridges the zMenu Folia scheduler to ZMenuFix so shutdown tasks can complete without `IllegalPluginAccessException` noise.
 - Optional player notifications, debug instrumentation, and async guards for thread safety.
 - Structured XML log stream written to `plugins/ZMenuFix/handled-errors.xml` with optional stack traces.
 
@@ -26,13 +28,15 @@ fix:
   close_on_zmenu_disable: true
   close_all_inventories: true
   async_guard: true
+  rebind_folia_scheduler: true
   notify_players: false
   notify_message: "&eYour menu was closed due to zMenu restart."
 ```
 
 ## Project layout
-- `src/java` – Java sources for the plugin.
-- `src/resources` – bundled configuration defaults and metadata.
+- `zMenuFix/` – Maven module containing the plugin implementation.
+  - `src/java` – Java sources for the plugin.
+  - `src/resources` – bundled configuration defaults and metadata.
 
 ## Building
 1. Install Java 17 or newer.

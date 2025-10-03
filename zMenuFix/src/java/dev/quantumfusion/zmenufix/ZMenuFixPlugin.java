@@ -6,8 +6,12 @@ import dev.quantumfusion.zmenufix.service.ZMenuLifecycleListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
@@ -37,6 +41,7 @@ public final class ZMenuFixPlugin extends JavaPlugin {
     private static final String[] BANNER_LINES = composeBanner();
 
     private final AtomicBoolean zMenuDetected = new AtomicBoolean(false);
+    private final AtomicReference<Plugin> bridgedSchedulerFor = new AtomicReference<>();
 
     private ZMenuFixConfiguration configuration;
     private ZMenuFixFileLogger fileLogger;
@@ -76,7 +81,7 @@ public final class ZMenuFixPlugin extends JavaPlugin {
 
         Plugin zMenu = pluginManager.getPlugin("zMenu");
         if (zMenu != null && zMenu.isEnabled()) {
-            lifecycleListener.handleZMenuEnabled(zMenu.getDescription().getVersion());
+            lifecycleListener.handleZMenuEnabled(zMenu);
         } else {
             String reason = (zMenu == null) ? "not present" : "present but not yet enabled";
             getLogger().warning("zMenu is " + reason + ". Awaiting enable event.");
@@ -92,6 +97,7 @@ public final class ZMenuFixPlugin extends JavaPlugin {
             fileLogger.info("ZMenuFix shutdown sequence started.");
             fileLogger.shutdown();
         }
+        bridgedSchedulerFor.set(null);
         lifecycleListener = null;
     }
 
@@ -131,6 +137,53 @@ public final class ZMenuFixPlugin extends JavaPlugin {
         return configuration != null && configuration.debug();
     }
 
+    public void attemptSchedulerBridge(Plugin zMenuPlugin) {
+        Objects.requireNonNull(zMenuPlugin, "zMenuPlugin");
+
+        if (configuration == null || !configuration.fix().rebindFoliaScheduler()) {
+            return;
+        }
+
+        Plugin current = bridgedSchedulerFor.get();
+        if (current == zMenuPlugin) {
+            return;
+        }
+
+        try {
+            Object implementation = locateFoliaSpigotImplementation(zMenuPlugin);
+            if (implementation == null) {
+                fileLogger.warn("Unable to locate zMenu FoliaLib implementation for scheduler bridge.");
+                return;
+            }
+
+            Field pluginField = findPluginField(implementation);
+            if (pluginField == null) {
+                fileLogger.warn("Unable to identify plugin field inside zMenu FoliaLib implementation.");
+                return;
+            }
+
+            Plugin existing = (Plugin) pluginField.get(implementation);
+            if (existing == this) {
+                bridgedSchedulerFor.set(zMenuPlugin);
+                fileLogger.debug("Folia scheduler bridge already active for zMenu.");
+                return;
+            }
+
+            pluginField.set(implementation, this);
+            bridgedSchedulerFor.set(zMenuPlugin);
+            fileLogger.info("Patched zMenu Folia scheduler to execute tasks under ZMenuFix context.");
+        } catch (ReflectiveOperationException exception) {
+            fileLogger.error("Failed to bridge zMenu Folia scheduler to ZMenuFix.", exception);
+        }
+    }
+
+    public void clearSchedulerBridge(Plugin zMenuPlugin) {
+        if (zMenuPlugin == null) {
+            return;
+        }
+        bridgedSchedulerFor.compareAndSet(zMenuPlugin, null);
+    }
+
     private void ensureConfigurationFile(File dataFolder) throws IOException {
         try (InputStream ignored = getResource("config.yml")) {
             if (ignored == null) {
@@ -156,6 +209,104 @@ public final class ZMenuFixPlugin extends JavaPlugin {
             lines[row] = builder.toString();
         }
         return lines;
+    }
+
+    private Object locateFoliaSpigotImplementation(Plugin zMenuPlugin) throws ReflectiveOperationException {
+        ClassLoader classLoader = zMenuPlugin.getClass().getClassLoader();
+        Class<?> foliaLibClass = Class.forName("fr.maxlego08.menu.hooks.folialib.FoliaLib", false, classLoader);
+        Class<?> implementationClass = Class.forName(
+                "fr.maxlego08.menu.hooks.folialib.impl.SpigotImplementation",
+                false,
+                classLoader
+        );
+
+        for (Field field : foliaLibClass.getDeclaredFields()) {
+            if (!Modifier.isStatic(field.getModifiers())) {
+                continue;
+            }
+            if (!field.trySetAccessible()) {
+                continue;
+            }
+            Object value = field.get(null);
+            if (value != null && implementationClass.isInstance(value)) {
+                return value;
+            }
+        }
+
+        for (Method method : foliaLibClass.getDeclaredMethods()) {
+            if (!Modifier.isStatic(method.getModifiers()) || method.getParameterCount() != 0) {
+                continue;
+            }
+            if (!implementationClass.isAssignableFrom(method.getReturnType())) {
+                continue;
+            }
+            if (!method.trySetAccessible()) {
+                continue;
+            }
+            Object value = method.invoke(null);
+            if (value != null && implementationClass.isInstance(value)) {
+                return value;
+            }
+        }
+
+        for (Field field : zMenuPlugin.getClass().getDeclaredFields()) {
+            if (!field.trySetAccessible()) {
+                continue;
+            }
+            Object possibleFoliaLib = field.get(zMenuPlugin);
+            if (possibleFoliaLib == null || !foliaLibClass.isInstance(possibleFoliaLib)) {
+                continue;
+            }
+
+            Method getter = null;
+            try {
+                getter = foliaLibClass.getDeclaredMethod("getImplementation");
+            } catch (NoSuchMethodException ignored) {
+                // ignore, will inspect fields below
+            }
+
+            if (getter != null) {
+                if (!getter.trySetAccessible()) {
+                    getter = null;
+                }
+            }
+
+            if (getter != null) {
+                Object implementation = getter.invoke(possibleFoliaLib);
+                if (implementation != null && implementationClass.isInstance(implementation)) {
+                    return implementation;
+                }
+            }
+
+            for (Field innerField : possibleFoliaLib.getClass().getDeclaredFields()) {
+                if (!implementationClass.isAssignableFrom(innerField.getType())) {
+                    continue;
+                }
+                if (!innerField.trySetAccessible()) {
+                    continue;
+                }
+                Object implementation = innerField.get(possibleFoliaLib);
+                if (implementation != null) {
+                    return implementation;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private Field findPluginField(Object implementation) {
+        Class<?> implementationClass = implementation.getClass();
+        for (Field field : implementationClass.getDeclaredFields()) {
+            if (!Plugin.class.isAssignableFrom(field.getType())) {
+                continue;
+            }
+            if (!field.trySetAccessible()) {
+                continue;
+            }
+            return field;
+        }
+        return null;
     }
 
     private void logStartupBanner() {

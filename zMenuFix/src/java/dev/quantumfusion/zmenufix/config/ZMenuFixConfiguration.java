@@ -72,6 +72,7 @@ public final class ZMenuFixConfiguration {
         private final boolean closeOnZMenuDisable;
         private final boolean closeAllInventories;
         private final boolean asyncGuard;
+        private final boolean rebindFoliaScheduler;
         private final boolean notifyPlayers;
         private final String notifyMessage;
 
@@ -80,6 +81,7 @@ public final class ZMenuFixConfiguration {
                 this.closeOnZMenuDisable = true;
                 this.closeAllInventories = true;
                 this.asyncGuard = true;
+                this.rebindFoliaScheduler = true;
                 this.notifyPlayers = false;
                 this.notifyMessage = "&eYour menu was closed due to zMenu restart.";
                 return;
@@ -88,6 +90,7 @@ public final class ZMenuFixConfiguration {
             this.closeOnZMenuDisable = section.getBoolean("close_on_zmenu_disable", true);
             this.closeAllInventories = section.getBoolean("close_all_inventories", true);
             this.asyncGuard = section.getBoolean("async_guard", true);
+            this.rebindFoliaScheduler = section.getBoolean("rebind_folia_scheduler", true);
             this.notifyPlayers = section.getBoolean("notify_players", false);
             this.notifyMessage = section.getString("notify_message", "&eYour menu was closed due to zMenu restart.");
         }
@@ -102,6 +105,10 @@ public final class ZMenuFixConfiguration {
 
         public boolean asyncGuard() {
             return asyncGuard;
+        }
+
+        public boolean rebindFoliaScheduler() {
+            return rebindFoliaScheduler;
         }
 
         public boolean notifyPlayers() {

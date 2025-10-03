@@ -23,6 +23,8 @@ import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
+import org.bukkit.plugin.IllegalPluginAccessException;
+import org.bukkit.plugin.Plugin;
 
 public final class ZMenuLifecycleListener implements Listener {
 
@@ -45,16 +47,23 @@ public final class ZMenuLifecycleListener implements Listener {
         this.zMenuEnabledFlag = Objects.requireNonNull(zMenuEnabledFlag, "zMenuEnabledFlag");
     }
 
-    public void handleZMenuEnabled(String version) {
+    public void handleZMenuEnabled(Plugin zMenu) {
         if (!configuration.enabled()) {
             return;
         }
 
+        if (zMenu == null) {
+            return;
+        }
+
         if (zMenuEnabledFlag.compareAndSet(false, true)) {
+            String version = zMenu.getDescription() != null ? zMenu.getDescription().getVersion() : null;
             String versionInfo = version == null ? "unknown version" : "v" + version;
             plugin.getLogger().info("Detected zMenu " + versionInfo + " as enabled.");
             fileLogger.info("Detected zMenu " + versionInfo + " as enabled.");
         }
+
+        plugin.attemptSchedulerBridge(zMenu);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -64,7 +73,7 @@ public final class ZMenuLifecycleListener implements Listener {
         }
 
         if (event.getPlugin().getName().equalsIgnoreCase(ZMENU_NAME)) {
-            handleZMenuEnabled(event.getPlugin().getDescription().getVersion());
+            handleZMenuEnabled(event.getPlugin());
         }
     }
 
@@ -83,6 +92,7 @@ public final class ZMenuLifecycleListener implements Listener {
         }
 
         zMenuEnabledFlag.set(false);
+        plugin.clearSchedulerBridge(event.getPlugin());
         fileLogger.info("zMenu disable detected. Initiating inventory close routine.");
         plugin.executeOnPrimaryThread(() -> closeInventories("PluginDisableEvent"));
     }
@@ -114,7 +124,13 @@ public final class ZMenuLifecycleListener implements Listener {
                 continue;
             }
 
-            player.closeInventory();
+            try {
+                player.closeInventory();
+            } catch (IllegalPluginAccessException exception) {
+                fileLogger.warn("Failed to close inventory for " + player.getName()
+                        + " because zMenu is already disabled: " + exception.getMessage());
+                continue;
+            }
             affectedPlayers.add(player.getName());
             notifyPlayer(player);
         }
