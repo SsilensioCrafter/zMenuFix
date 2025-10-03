@@ -224,8 +224,8 @@ public final class ZMenuFixPlugin extends JavaPlugin {
             if (!Modifier.isStatic(field.getModifiers())) {
                 continue;
             }
-            if (!field.canAccess(null)) {
-                field.setAccessible(true);
+            if (!field.trySetAccessible()) {
+                continue;
             }
             Object value = field.get(null);
             if (value != null && implementationClass.isInstance(value)) {
@@ -240,8 +240,8 @@ public final class ZMenuFixPlugin extends JavaPlugin {
             if (!implementationClass.isAssignableFrom(method.getReturnType())) {
                 continue;
             }
-            if (!method.canAccess(null)) {
-                method.setAccessible(true);
+            if (!method.trySetAccessible()) {
+                continue;
             }
             Object value = method.invoke(null);
             if (value != null && implementationClass.isInstance(value)) {
@@ -250,8 +250,8 @@ public final class ZMenuFixPlugin extends JavaPlugin {
         }
 
         for (Field field : zMenuPlugin.getClass().getDeclaredFields()) {
-            if (!field.canAccess(zMenuPlugin)) {
-                field.setAccessible(true);
+            if (!field.trySetAccessible()) {
+                continue;
             }
             Object possibleFoliaLib = field.get(zMenuPlugin);
             if (possibleFoliaLib == null || !foliaLibClass.isInstance(possibleFoliaLib)) {
@@ -266,9 +266,12 @@ public final class ZMenuFixPlugin extends JavaPlugin {
             }
 
             if (getter != null) {
-                if (!getter.canAccess(possibleFoliaLib)) {
-                    getter.setAccessible(true);
+                if (!getter.trySetAccessible()) {
+                    getter = null;
                 }
+            }
+
+            if (getter != null) {
                 Object implementation = getter.invoke(possibleFoliaLib);
                 if (implementation != null && implementationClass.isInstance(implementation)) {
                     return implementation;
@@ -279,8 +282,8 @@ public final class ZMenuFixPlugin extends JavaPlugin {
                 if (!implementationClass.isAssignableFrom(innerField.getType())) {
                     continue;
                 }
-                if (!innerField.canAccess(possibleFoliaLib)) {
-                    innerField.setAccessible(true);
+                if (!innerField.trySetAccessible()) {
+                    continue;
                 }
                 Object implementation = innerField.get(possibleFoliaLib);
                 if (implementation != null) {
@@ -298,8 +301,8 @@ public final class ZMenuFixPlugin extends JavaPlugin {
             if (!Plugin.class.isAssignableFrom(field.getType())) {
                 continue;
             }
-            if (!field.canAccess(implementation)) {
-                field.setAccessible(true);
+            if (!field.trySetAccessible()) {
+                continue;
             }
             return field;
         }
