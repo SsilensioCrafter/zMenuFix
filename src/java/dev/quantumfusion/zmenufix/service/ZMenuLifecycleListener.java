@@ -23,6 +23,7 @@ import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
+import org.bukkit.plugin.IllegalPluginAccessException;
 
 public final class ZMenuLifecycleListener implements Listener {
 
@@ -114,7 +115,13 @@ public final class ZMenuLifecycleListener implements Listener {
                 continue;
             }
 
-            player.closeInventory();
+            try {
+                player.closeInventory();
+            } catch (IllegalPluginAccessException exception) {
+                fileLogger.warn("Failed to close inventory for " + player.getName()
+                        + " because zMenu is already disabled: " + exception.getMessage());
+                continue;
+            }
             affectedPlayers.add(player.getName());
             notifyPlayer(player);
         }
