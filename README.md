@@ -6,7 +6,8 @@
 Production-ready mitigation plugin that ensures zMenu GUI sessions are closed safely when the zMenu plugin reloads or shuts down. Built for Paper/Spigot 1.20.1+ with configuration-driven behaviour and structured XML logging.
 
 ## Features
-- Gracefully detects zMenu enable/disable lifecycle without a hard dependency.
+- Gracefully detects zMenu enable/disable lifecycle without a hard dependency and now forces
+  load order ahead of zMenu so the scheduler bridge survives zMenu shutdown.
 - Closes lingering inventory views on zMenu disable to prevent `IllegalPluginAccessException`.
 - Bridges the zMenu Folia scheduler to ZMenuFix so shutdown tasks can complete without `IllegalPluginAccessException` noise.
 - Optional player notifications, debug instrumentation, and async guards for thread safety.

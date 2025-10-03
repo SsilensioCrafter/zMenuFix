@@ -6,6 +6,6 @@ author: QuantumFusion
 website: https://github.com/quantumfusion/zmenufix
 load: POSTWORLD
 depend: []
-softdepend:
+loadbefore:
   - zMenu
 description: Safely closes zMenu inventories on plugin disable to prevent IllegalPluginAccessException.
