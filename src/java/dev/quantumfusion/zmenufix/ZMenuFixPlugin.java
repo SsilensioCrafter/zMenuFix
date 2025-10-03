@@ -114,11 +114,17 @@ public final class ZMenuFixPlugin extends JavaPlugin {
     public void executeOnPrimaryThread(Runnable task) {
         Objects.requireNonNull(task, "task");
         boolean shouldGuard = configuration != null && configuration.fix().asyncGuard();
-        if (shouldGuard && !Bukkit.isPrimaryThread()) {
-            Bukkit.getScheduler().runTask(this, task);
-        } else {
+        if (!shouldGuard || Bukkit.isPrimaryThread()) {
             task.run();
+            return;
         }
+
+        if (!isEnabled()) {
+            task.run();
+            return;
+        }
+
+        Bukkit.getScheduler().runTask(this, task);
     }
 
     public boolean isDebug() {
