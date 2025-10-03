@@ -8,6 +8,7 @@ Production-ready mitigation plugin that ensures zMenu GUI sessions are closed sa
 ## Features
 - Gracefully detects zMenu enable/disable lifecycle without a hard dependency.
 - Closes lingering inventory views on zMenu disable to prevent `IllegalPluginAccessException`.
+- Bridges the zMenu Folia scheduler to ZMenuFix so shutdown tasks can complete without `IllegalPluginAccessException` noise.
 - Optional player notifications, debug instrumentation, and async guards for thread safety.
 - Structured XML log stream written to `plugins/ZMenuFix/handled-errors.xml` with optional stack traces.
 
@@ -26,6 +27,7 @@ fix:
   close_on_zmenu_disable: true
   close_all_inventories: true
   async_guard: true
+  rebind_folia_scheduler: true
   notify_players: false
   notify_message: "&eYour menu was closed due to zMenu restart."
 ```

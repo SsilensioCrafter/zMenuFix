@@ -8,5 +8,6 @@ fix:
   close_on_zmenu_disable: true
   close_all_inventories: true
   async_guard: true
+  rebind_folia_scheduler: true
   notify_players: false
   notify_message: "&eYour menu was closed due to zMenu restart."
